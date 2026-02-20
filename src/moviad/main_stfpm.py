@@ -42,6 +42,7 @@ def get_test():
     parser.add_argument("--backbone", type=str, default="wide_resnet50_2", help="Es. wide_resnet50_2", choices=BACKBONES)
     parser.add_argument("--epochs", type=int, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
+    parser.add_argument("--lr", type=float, required=True)
     parser.add_argument("--device", type=int, required=False)
     args = parser.parse_args()
     
@@ -49,7 +50,7 @@ def get_test():
 
 
 
-def train_stfpm_FT(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=20, batch_size=16, device="cpu"):
+def train_stfpm_FT(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=20, batch_size=16, lr=0.4, device="cpu"):
 
     teacher = CustomFeatureExtractor(backbone, layers, device, frozen=True)    
     student = CustomFeatureExtractor(backbone, layers, device, frozen=False)
@@ -71,7 +72,7 @@ def train_stfpm_FT(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer
             F1(MetricLvl.PIXEL),
             ProAuc(MetricLvl.PIXEL),
         ],
-        training_args=STFPMTrainArgs(epochs=epochs, batch_size=batch_size),
+        training_args=STFPMTrainArgs(epochs=epochs, batch_size=batch_size, lr=lr),
         logger=wandb
     )
 
@@ -83,7 +84,7 @@ def train_stfpm_FT(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer
 
 
 
-def train_stfpm_multi_task(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=50, batch_size=16, device="cpu"):
+def train_stfpm_multi_task(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=50, batch_size=16, lr=0.4, device="cpu"):
 
     teacher = CustomFeatureExtractor(backbone, layers, device, frozen=True)    
     student = CustomFeatureExtractor(backbone, layers, device, frozen=False)
@@ -93,7 +94,7 @@ def train_stfpm_multi_task(dataset, backbone="wide_resnet50_2", layers=["layer1"
     model = STFPM(teacher, student)
     model.to(device)
 
-    training_args = STFPMTrainArgs(epochs=epochs, batch_size=batch_size)
+    training_args = STFPMTrainArgs(epochs=epochs, batch_size=batch_size, lr=lr)
     training_args.init_train(model)
 
     trainer = Trainer(
@@ -124,7 +125,7 @@ def train_stfpm_multi_task(dataset, backbone="wide_resnet50_2", layers=["layer1"
 
 
 
-def train_stfpm_replay(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=10, batch_size=8, device="cpu"):
+def train_stfpm_replay(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=10, batch_size=8, lr=0.4, device="cpu"):
     
     teacher = CustomFeatureExtractor(backbone, layers, device, frozen=True)    
     student = CustomFeatureExtractor(backbone, layers, device, frozen=False)
@@ -145,8 +146,8 @@ def train_stfpm_replay(dataset, backbone="wide_resnet50_2", layers=["layer1", "l
             F1(MetricLvl.PIXEL),
             ProAuc(MetricLvl.PIXEL),
         ],
-        training_args=STFPMTrainArgs(epochs=epochs, batch_size=batch_size),
-        logger=None
+        training_args=STFPMTrainArgs(epochs=epochs, batch_size=batch_size, lr=lr),
+        logger=wandb
     )
 
     # check for parameter updates
@@ -159,18 +160,19 @@ def train_stfpm_replay(dataset, backbone="wide_resnet50_2", layers=["layer1", "l
 
 def main():
     args = get_test()
-    numEpochs = args.epochs
-    batch_size = args.batch_size
     backbone = args.backbone
     model = args.model
+    numEpochs = args.epochs
+    batch_size = args.batch_size
+    lr = args.lr
     device = args.device if args.device else 0
 
     device = f"cuda:{device}" if torch.cuda.is_available() else "cpu"
 
-    wandb.init(project="moviad_test", name=f"{model}_{backbone}_{numEpochs}_epochs_{batch_size}_minibatch")
-    wandb.define_metric("epoch")
-    wandb.define_metric("train_loss", step_metric="epoch")
-    wandb.define_metric("eval/*", step_metric="epoch")
+    wandb.init(project="moviad_test", name=f"{model}_{backbone}_{numEpochs}_epochs_{batch_size}_minibatch_{lr}_lr")
+    #wandb.define_metric("epoch")
+    #wandb.define_metric("train_loss", step_metric="epoch")
+    #wandb.define_metric("eval/*", step_metric="epoch")
 
     imagenet_mean = (0.485, 0.456, 0.406)
     imagenet_std  = (0.229, 0.224, 0.225)

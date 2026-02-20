@@ -18,7 +18,8 @@ class STFPMTrainArgs(TrainingArgs):
             self.optimizer = torch.optim.SGD(
                 #model.parameters(), lr=0.4, weight_decay=1e-4, momentum=0.9
                 #model.parameters(), lr=0.04, weight_decay=1e-4, momentum=0.9
-                model.parameters(), lr=0.01, weight_decay=1e-4, momentum=0.9
+                #model.parameters(), lr=0.01, weight_decay=1e-4, momentum=0.9
+                model.parameters(), lr=self.lr, weight_decay=1e-4, momentum=0.9
             )
         if self.loss_function is None:
             self.loss_function = stfpm_loss

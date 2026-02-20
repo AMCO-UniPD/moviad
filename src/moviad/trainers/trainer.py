@@ -83,8 +83,8 @@ class Trainer:
 
             if self.logger:
                 self.logger.log({
-                    f"{self.logging_prefix}epoch" : epoch,
-                    f"{self.logging_prefix}train_loss" : avg_batch_loss
+                    f"{self.logging_prefix}train/epoch" : epoch,
+                    f"{self.logging_prefix}train/train_loss" : avg_batch_loss
                 })
 
             if (epoch + 1) % self.train_args.evaluation_epoch_interval == 0:
@@ -100,16 +100,9 @@ class Trainer:
                 print("Training performances:")
                 Trainer.print_metrics(results)
 
-                """
+                
                 if self.logger is not None:
                     if self.logging_prefix is not None:
                         self.logger.log({
                             f"{self.logging_prefix}train/{metric_name}": value for metric_name, value in results.items()
                         })
-                """
-                
-                if self.logger is not None:
-                    if self.logging_prefix is not None:
-                        self.logger.log({
-                            f"{self.logging_prefix}eval/{metric_name}": value for metric_name, value in results.items()
-                        }, step=epoch+1)
