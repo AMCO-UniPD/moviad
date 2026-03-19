@@ -49,7 +49,7 @@ class ContinualTrainer:
                 logger=self.logger,
             )
 
-            self.continual_model.end_task()
+            self.continual_model.end_task(task_index, train_dataset, self.trainer_arguments)
 
             # Evaluate on all previous tasks and get summary metrics
             summary_metrics = { metric.name: [] for metric in self.metrics }

@@ -44,10 +44,25 @@ def get_test():
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--lr", type=float, required=True)
     parser.add_argument("--device", type=int, required=False)
+    #parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
     
     return args
 
+"""
+def set_seed(seed: int = 0):
+    import os
+    import random
+    import random, numpy as np
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True)
+"""
 
 
 def train_stfpm_FT(dataset, backbone="wide_resnet50_2", layers=["layer1", "layer2", "layer3"], epochs=20, batch_size=16, lr=0.4, device="cpu"):
@@ -165,8 +180,9 @@ def main():
     numEpochs = args.epochs
     batch_size = args.batch_size
     lr = args.lr
+    #seed = args.seed
+    #set_seed(seed)
     device = args.device if args.device else 0
-
     device = f"cuda:{device}" if torch.cuda.is_available() else "cpu"
 
     wandb.init(project="moviad_test", name=f"{model}_{backbone}_{numEpochs}_epochs_{batch_size}_minibatch_{lr}_lr")
