@@ -75,7 +75,18 @@ For every main script all its parameters are documented.
 - MVTecAD: [link](https://paperswithcode.com/dataset/mvtecad)
 - VisA: [link](https://paperswithcode.com/dataset/visa)
 - RealIAD: [paper](https://arxiv.org/abs/2403.12580)
-- MIIC Dataset: [link](https://github.com/wenbihan/MIIC-IAD) 
+- MIIC Dataset: [link](https://github.com/wenbihan/MIIC-IAD)
+
+**Submodules**
+
+- MIRAGE: [repository](https://github.com/AMCO-UniPD/MIRAGE.git) - A comprehensive framework for anomaly detection integrated as a submodule. To clone with submodules, use:
+  ```bash
+  git clone --recurse-submodules https://github.com/your-repo/moviad.git
+  ```
+  Or if you already cloned without submodules, initialize them with:
+  ```bash
+  git submodule update --init --recursive
+  ``` 
 
 ## Contribute
 
