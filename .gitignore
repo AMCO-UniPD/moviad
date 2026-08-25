@@ -215,3 +215,6 @@ benchmark/patchcore.json
 benchmark/stfpm.json
 
 /wandb
+
+#DS_Store
+.DS_Store
