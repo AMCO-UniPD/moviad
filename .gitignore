@@ -4,6 +4,8 @@ disk
 wandb/*
 wandb/**/*
 wandb
+experiments/
+/experiments
 
 
 
