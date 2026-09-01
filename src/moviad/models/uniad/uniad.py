@@ -9,17 +9,13 @@ Code adapted from:
 
 import torch
 import torch.nn.functional as F
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Tuple
-from tqdm import tqdm
 
 from moviad.models.vad_model import VADModel
 from moviad.models.training_args import TrainingArgs
 from moviad.utilities.custom_feature_extractor_trimmed import CustomFeatureExtractor
 from moviad.models.uniad.components import UniADCore, MFCN
-from moviad.models.uniad.optimizer import build_optimizer
-from moviad.models.uniad.scheduler import build_scheduler
-
 
 @dataclass
 class UniADTrainArgs(TrainingArgs):
@@ -32,8 +28,8 @@ class UniADTrainArgs(TrainingArgs):
 
     def init_train(self, model: VADModel):
         if self.optimizer is None:
-            self.optimizer = build_optimizer(
-                model,
+            self.optimizer = torch.optim.AdamW(
+                model.uniad_core.parameters(),
                 lr=self.lr,
                 betas=self.betas,
                 weight_decay=self.weight_decay,
@@ -41,7 +37,7 @@ class UniADTrainArgs(TrainingArgs):
         if self.loss_function is None:
             self.loss_function = torch.nn.MSELoss()
         if self.scheduler is None:
-            self.scheduler = build_scheduler(
+            self.scheduler = torch.optim.lr_scheduler.StepLR(
                 self.optimizer,
                 step_size=self.step_size,
                 gamma=self.gamma,
@@ -74,7 +70,6 @@ class UniAD(VADModel):
         self.feature_size = feature_size
         self.use_mfcn = use_mfcn
         self.device = feature_extractor.device
-
 
         instride = self.input_size[0] // self.feature_size[0]
 
@@ -133,26 +128,16 @@ class UniAD(VADModel):
         else:
             feat = feat_list[-1]
 
-        feat = F.interpolate(
-            feat,
-            size=(self.feature_size[0], self.feature_size[1]),
-            mode="bilinear",
-            align_corners=False,
-        )
+            feat = F.interpolate(
+                feat,
+                size=(self.feature_size[0], self.feature_size[1]),
+                mode="bilinear",
+                align_corners=False,
+            )
         return feat
 
     def forward(self, x: torch.Tensor):
         feature_align = self._extract_features(x)
-        return self.forward_from_features(feature_align)
-
-    def forward_from_features(self, feature_align: torch.Tensor):
-        """
-        Same as forward(), but starting from an already extracted+aligned feature
-        map instead of raw images. Since the backbone is frozen, its output for a
-        given image never changes across epochs, so a caller can extract it once
-        and reuse it (see entrypoints/uniad_unified.py) instead of paying the
-        backbone forward pass cost on every step.
-        """
         feature_rec, pred = self.uniad_core(feature_align)
 
         if self.training:
@@ -165,14 +150,9 @@ class UniAD(VADModel):
             return anomaly_maps, anomaly_scores
 
     def train_step(self, batch: torch.Tensor, training_args: UniADTrainArgs):
-        if isinstance(batch, (tuple, list)):
-            batch = batch[0]
         batch = batch.to(self.device)
-        feature_align = self._extract_features(batch)
-        return self.train_step_from_features(feature_align, training_args)
 
-    def train_step_from_features(self, feature_align: torch.Tensor, training_args: UniADTrainArgs):
-        feature_rec, feature_align = self.forward_from_features(feature_align)
+        feature_rec, feature_align = self.forward(batch)
         loss = training_args.loss_function(feature_rec, feature_align)
 
         training_args.optimizer.zero_grad()
@@ -181,18 +161,6 @@ class UniAD(VADModel):
         training_args.optimizer.step()
 
         return loss.item()
-
-    def train_epoch(self, epoch, train_dataloader, training_args: UniADTrainArgs):
-        """Loop over all batches for one epoch."""
-        avg_batch_loss = 0
-        for batch in tqdm(train_dataloader, desc=f"Epoch [{epoch + 1}]"):
-            avg_batch_loss += self.train_step(batch, training_args)
-        avg_batch_loss /= len(train_dataloader)
-
-        if training_args.scheduler is not None:
-            training_args.scheduler.step()
-
-        return avg_batch_loss
 
     def save(self, save_path: str):
         torch.save(self.state_dict(), save_path)
