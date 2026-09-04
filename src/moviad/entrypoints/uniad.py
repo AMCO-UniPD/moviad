@@ -40,6 +40,7 @@ class UniADArgs:
     })
     use_mfcn: bool = True
     mfcn_instrides: Optional[List[int]] = field(default_factory=lambda: [2, 4, 8, 16])
+    avgpool_size: int = 16
     device: torch.device = None
     save_path: Optional[str] = None
 
@@ -70,6 +71,7 @@ def train_uniad(args: UniADArgs, logger=None):
         feature_jitter=args.feature_jitter,
         use_mfcn=args.use_mfcn,
         mfcn_instrides=args.mfcn_instrides,
+        avgpool_size=args.avgpool_size,
     )
     model.to(args.device)
 

@@ -41,6 +41,7 @@ class UniADUnifiedArgs:
     mfcn_instrides: List[int] = field(default_factory=lambda: [2, 4, 8, 16])
     neighbor_mask: dict = field(default_factory=lambda: {"neighbor_size": [7, 7], "mask": [True, True, True]})
     feature_jitter: dict = field(default_factory=lambda: {"scale": 20.0, "prob": 1.0})
+    avgpool_size: int = 16
     batch_size: int = 4
     epochs: int = 50
     lr: float = 1e-4
@@ -119,6 +120,7 @@ def train_uniad_unified(args: UniADUnifiedArgs, logger=None) -> Tuple[Dict[str, 
         feature_jitter=args.feature_jitter,
         use_mfcn=args.use_mfcn,
         mfcn_instrides=args.mfcn_instrides,
+        avgpool_size=args.avgpool_size,
     ).to(args.device)
 
     cached_train = _cache_train_features(model, joint_train_dataset, args.device, args.cache_batch_size)

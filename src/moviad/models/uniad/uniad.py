@@ -63,13 +63,18 @@ class UniAD(VADModel):
         feature_jitter: Optional[dict] = None,
         use_mfcn: bool = False,
         mfcn_instrides: Optional[List[int]] = None,
+        avgpool_size: int = 16,
     ):
         super().__init__()
         self.feature_extractor = feature_extractor
         self.input_size = input_size
         self.feature_size = feature_size
         self.use_mfcn = use_mfcn
+        self.avgpool_size = avgpool_size
         self.device = feature_extractor.device
+
+        self.register_buffer("_norm_mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
+        self.register_buffer("_norm_std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
 
         instride = self.input_size[0] // self.feature_size[0]
 
@@ -119,7 +124,8 @@ class UniAD(VADModel):
 
     def _extract_features(self, x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            features = self.feature_extractor(x.to(self.device))
+            x = (x.to(self.device) - self._norm_mean) / self._norm_std
+            features = self.feature_extractor(x)
 
         feat_list = features if isinstance(features, list) else list(features.values())
 
@@ -138,6 +144,9 @@ class UniAD(VADModel):
 
     def forward(self, x: torch.Tensor):
         feature_align = self._extract_features(x)
+        return self.forward_from_features(feature_align)
+
+    def forward_from_features(self, feature_align: torch.Tensor):
         feature_rec, pred = self.uniad_core(feature_align)
 
         if self.training:
@@ -146,13 +155,19 @@ class UniAD(VADModel):
             anomaly_maps = F.interpolate(
                 pred, size=self.input_size, mode="bilinear", align_corners=False
             )
-            anomaly_scores = anomaly_maps.flatten(1).max(dim=1).values
+            pooled = F.avg_pool2d(anomaly_maps, kernel_size=self.avgpool_size, stride=1)
+            anomaly_scores = pooled.flatten(1).max(dim=1).values
             return anomaly_maps, anomaly_scores
 
     def train_step(self, batch: torch.Tensor, training_args: UniADTrainArgs):
+        if isinstance(batch, (tuple, list)):
+            batch = batch[0]
         batch = batch.to(self.device)
+        feature_align = self._extract_features(batch)
+        return self.train_step_from_features(feature_align, training_args)
 
-        feature_rec, feature_align = self.forward(batch)
+    def train_step_from_features(self, feature_align: torch.Tensor, training_args: UniADTrainArgs):
+        feature_rec, feature_align = self.forward_from_features(feature_align)
         loss = training_args.loss_function(feature_rec, feature_align)
 
         training_args.optimizer.zero_grad()
