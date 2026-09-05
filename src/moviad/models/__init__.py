@@ -7,5 +7,5 @@ from .stfpm.stfpm import STFPM
 from .supersimplenet.supersimplenet import SuperSimpleNet
 from .ganomaly.ganomaly import Ganomaly
 from .cfa.cfa import CFA
-
 from .vad_model import VADModel
+from .uniad.uniad import UniAD, UniADTrainArgs

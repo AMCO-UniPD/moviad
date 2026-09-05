@@ -17,13 +17,17 @@ class VADModel(nn.Module):
             avg_batch_loss += self.train_step(batch, training_args)
 
         avg_batch_loss /= len(train_dataloader)
+
+        if training_args.scheduler is not None:
+            training_args.scheduler.step()
+
         return avg_batch_loss
 
     @abstractmethod
     def train_step(self, batch: torch.Tensor, training_args: TrainingArgs): ...
 
     @abstractmethod
-    def train_chunk(self, train_dataloader: torch.utils.data.DataLoader, training_args: TrainingArgs): 
+    def train_chunk(self, train_dataloader: torch.utils.data.DataLoader, training_args: TrainingArgs):
         pass
 
     def reset_model(self):

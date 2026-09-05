@@ -3,11 +3,12 @@ from typing import Callable
 import torch
 
 @dataclass
-class TrainingArgs: 
+class TrainingArgs:
     batch_size: int
     epochs: int
-    evaluation_epoch_interval: int = 1 
+    evaluation_epoch_interval: int = 1
     optimizer: torch.optim.Optimizer | None = None
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None
     loss_function: Callable | None = None
 
     def __to_dict__(self):
@@ -21,7 +22,7 @@ class TrainingArgs:
             "loss_function": self.loss_function,
             "optimizer": optimizer_dict,
         }
-    
+
     @staticmethod
     def optimizer_to_dict(optimizer: torch.optim.Optimizer):
         return {
