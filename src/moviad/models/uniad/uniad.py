@@ -73,9 +73,6 @@ class UniAD(VADModel):
         self.avgpool_size = avgpool_size
         self.device = feature_extractor.device
 
-        self.register_buffer("_norm_mean", torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
-        self.register_buffer("_norm_std", torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
-
         instride = self.input_size[0] // self.feature_size[0]
 
         inplanes = self._get_feature_channels()
@@ -124,8 +121,7 @@ class UniAD(VADModel):
 
     def _extract_features(self, x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            x = (x.to(self.device) - self._norm_mean) / self._norm_std
-            features = self.feature_extractor(x)
+            features = self.feature_extractor(x.to(self.device))
 
         feat_list = features if isinstance(features, list) else list(features.values())
 

@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import torch
 from torch.utils.data import ConcatDataset, DataLoader, TensorDataset
+from torchvision import transforms
 from tqdm import tqdm
 
 from moviad.datasets.dataset_arguments import DatasetArguments
@@ -106,6 +107,11 @@ def train_uniad_unified(args: UniADUnifiedArgs, logger=None) -> Tuple[Dict[str, 
         dataset_path=args.dataset_path,
         img_size=args.img_input_size,
         gt_mask_size=args.img_input_size,
+        image_transform_list=[
+            transforms.ToTensor(),
+            transforms.Resize(args.img_input_size, antialias=True),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ],
     )
 
     train_datasets = [MVTecDataset(dataset_args, category=c, split=Split.TRAIN) for c in categories]
