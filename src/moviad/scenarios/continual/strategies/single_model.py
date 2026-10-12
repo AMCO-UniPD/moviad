@@ -38,7 +38,6 @@ class SingleModel(ContinualModel):
             device=device,
             logger=logger,
             logging_prefix=f"Task_T{task_index}/",
-            save_path=self.save_directory_path,
             saving_criteria=self.saving_criteria,
             save_path=os.path.join(self.save_directory_path, f"task_{task_index}.pth") if self.save_directory_path else None,
         )

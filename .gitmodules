@@ -1,0 +1,3 @@
+[submodule "MIRAGE"]
+	path = MIRAGE
+	url = https://github.com/AMCO-UniPD/MIRAGE.git

@@ -10,9 +10,8 @@ experiments/
 
 
 # Documentation
-docs/*
-! docs/conf.py
-! docs/index.rst
+docs/_build/
+.venv-docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
