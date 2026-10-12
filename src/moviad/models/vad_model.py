@@ -30,7 +30,12 @@ class VADModel(nn.Module):
         pass
 
     def save(self, save_path: str):
-        pass
+        """Save the model state dictionary to ``save_path``."""
+        torch.save(self.state_dict(), save_path)
+
+    def save_model(self, save_path: str):
+        """Compatibility alias for :meth:`save`."""
+        self.save(save_path)
 
     def get_model_size(self):
         pass

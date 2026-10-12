@@ -26,14 +26,14 @@ class Replay(ContinualModel):
             train_dataset,
             batch_size=train_args.batch_size,
             shuffle=True,
-            num_workers=4
+            num_workers=train_args.num_workers,
         )
 
         eval_dataloader = torch.utils.data.DataLoader(
             eval_dataset,
             batch_size=train_args.batch_size,
             shuffle=False,
-            num_workers=4
+            num_workers=train_args.num_workers,
         ) if eval_dataset is not None else None
 
         train_args.init_train(self.vad_model)

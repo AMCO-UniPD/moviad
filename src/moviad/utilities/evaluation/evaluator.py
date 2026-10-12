@@ -10,7 +10,11 @@ from moviad.models.vad_model import VADModel
 
 
 def min_max_norm(x):
-    return (x - x.min()) / (x.max() - x.min())
+    values = np.asarray(x)
+    value_range = values.max() - values.min()
+    if value_range == 0:
+        return np.zeros_like(values, dtype=np.result_type(values.dtype, np.float32))
+    return (values - values.min()) / value_range
 
 
 class Evaluator:

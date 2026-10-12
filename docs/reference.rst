@@ -12,22 +12,23 @@ optional backbones during a documentation build.
    Preprocessing configuration shared by dataset constructors. Sizes are height,
    width pairs. Provide both image and mask sizes for segmentation experiments.
 
-.. py:class:: moviad.models.training_args.TrainingArgs(batch_size, epochs, evaluation_epoch_interval=1, optimizer=None, loss_function=None)
+.. py:class:: moviad.models.training_args.TrainingArgs(batch_size, epochs, evaluation_epoch_interval=1, optimizer=None, loss_function=None, num_workers=4)
 
    Base training configuration. ``init_train(model)`` is the model-specific
-   initialization hook. Existing ``__to_dict__()`` is used by experiment loggers.
+   initialization hook. Set ``num_workers=0`` for single-process loading.
+   Existing ``__to_dict__()`` is used by experiment loggers.
 
 .. py:class:: moviad.models.vad_model.VADModel
 
    PyTorch model base. Shared ``train_epoch`` averages ``train_step`` losses.
-   Training and chunked fitting are model-specific. Reset/save/size hooks are
-   placeholders unless a concrete model implements them.
+   Training and chunked fitting are model-specific. The default ``save(path)``
+   writes a state dictionary; ``save_model(path)`` remains a compatibility alias.
 
 .. py:class:: moviad.trainers.trainer.Trainer(train_args, model, train_dataset, eval_dataset, metrics, device, logger=None, logging_prefix="", save_path=None, saving_criteria=None)
 
    Builds loaders and runs the model's epoch method. ``train()`` takes no epoch
-   argument. The current loaders use four workers. Evaluation expects a dataset
-   at the configured interval. See :doc:`workflows` for saving limitations.
+   argument. Loader workers come from ``TrainingArgs``. Evaluation is skipped
+   when no evaluation dataset is supplied. Checkpoints use ``model.save(path)``.
 
 .. py:class:: moviad.scenarios.continual.continual_dataset.ContinualDataset(dataset_arguments, dataset_class, categories=None)
 

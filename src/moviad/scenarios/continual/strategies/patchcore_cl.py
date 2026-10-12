@@ -36,7 +36,7 @@ class PatchCoreCL(ContinualModel):
             train_dataset,
             batch_size=train_args.batch_size,
             shuffle=True,
-            num_workers=4
+            num_workers=train_args.num_workers,
         )
 
         embeddings = []

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from enum import Enum
 from dataclasses import dataclass
-from typing import Optional
+from collections.abc import Sequence
 
 from torch.utils.data.dataset import Dataset
 from torchvision import transforms
@@ -25,11 +25,14 @@ class VADDataset(Dataset):
         self,
         arguments: DatasetArguments,
         category: str,
-        split: Split | list[Split]
+        split: Split | str | Sequence[Split | str],
     ):
         self.dataset_arguments = arguments
         self.category = category
-        self.split = split
+        if isinstance(split, (Split, str)):
+            self.split = Split(split)
+        else:
+            self.split = [Split(item) for item in split]
 
         if self.dataset_arguments.image_transform_list:
             self.transform_image = transforms.Compose(self.dataset_arguments.image_transform_list)

@@ -1,11 +1,5 @@
-from torch.utils.data.dataset import Subset
-from typing import List
-from torch.utils.data import DataLoader
-import numpy as np
 import torch
-from typing import Tuple
-
-from dataclasses import replace
+from collections.abc import Sequence
 
 from moviad.datasets.dataset_arguments import DatasetArguments
 from moviad.datasets.vad_dataset import VADDataset
@@ -15,8 +9,8 @@ class ContinualDataset:
 
     def __init__(self,
                  dataset_arguments: DatasetArguments,
-                 dataset_class: VADDataset,
-                 categories: List[str] = None,
+                 dataset_class: type[VADDataset],
+                 categories: Sequence[str] | None = None,
                 ):
 
         """
@@ -27,14 +21,14 @@ class ContinualDataset:
         self.dataset_class = dataset_class
         
         if categories is not None:
-            self.categories = categories
+            self.categories = list(categories)
         else:
             self.categories = dataset_class.get_categories()
 
     def __len__(self):
         return len(self.categories)
 
-    def get_task_data(self, task_index:int) -> Tuple[DataLoader, DataLoader]:
+    def get_task_data(self, task_index: int) -> tuple[VADDataset, VADDataset]:
 
         """
         Get the training and test data for the given task.
@@ -60,7 +54,7 @@ class ContinualDataset:
 
         return train_dataset, test_dataset
 
-    def get_task_data_evaluation(self, task_index:int) -> torch.utils.data.DataLoader:
+    def get_task_data_evaluation(self, task_index: int) -> VADDataset:
 
         """
         Get the test data for the given task.
@@ -79,7 +73,7 @@ class ContinualDataset:
 
         return test_dataset 
 
-    def get_all_tasks_data(self) -> Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
+    def get_all_tasks_data(self) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
 
         """
         Get the data for all tasks.
@@ -104,7 +98,7 @@ class ContinualDataset:
         return train_dataset, test_dataset
 
     def get_previous_tasks(self, task_index):
-        return range(len(self.categories))[:task_index+1]
+        return range(task_index + 1)
     
     def get_task_category(self, task_index):
         return self.categories[task_index]

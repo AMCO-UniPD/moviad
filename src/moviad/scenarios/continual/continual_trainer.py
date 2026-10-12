@@ -73,7 +73,7 @@ class ContinualTrainer:
                     eval_dataset,
                     batch_size=self.trainer_arguments.batch_size,
                     shuffle=False,
-                    num_workers=4
+                    num_workers=self.trainer_arguments.num_workers,
                 )
 
                 results = Evaluator.evaluate(self.continual_model, eval_dataloader, self.metrics, device=self.device)

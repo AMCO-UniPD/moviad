@@ -13,14 +13,17 @@ class ContinualModel(ABC):
 
     def to(self, device: torch.device):
         self.vad_model.to(device)
+        return self
 
     def train(self, mode: bool = True):
         self.vad_model.train(mode)
-        self.training = True
+        self.training = mode
+        return self
 
     def eval(self):
         self.vad_model.eval()
         self.training = False
+        return self
 
     def forward(self, batch: torch.Tensor):
         return self.vad_model(batch)

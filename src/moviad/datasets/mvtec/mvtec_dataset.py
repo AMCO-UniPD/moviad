@@ -51,7 +51,7 @@ class MVTecDataset(VADDataset):
         self,
         dataset_arguments: DatasetArguments,
         category: str,
-        split: Split | list[Split]
+        split: Split | str,
     ) -> None:
 
         super().__init__(
@@ -59,6 +59,9 @@ class MVTecDataset(VADDataset):
             category,
             split
         )
+
+        if isinstance(self.split, list):
+            raise TypeError("MVTecDataset expects one split at a time")
 
         self.root_category = Path(self.dataset_arguments.dataset_path) / Path(self.category)
         self.samples: pd.DataFrame = None
@@ -145,14 +148,16 @@ class MVTecDataset(VADDataset):
         return len(self.samples)
 
     def contaminate(self, source: VADDataset, ratio: float, seed: int = 42) -> int:
-        if type(source) is not MVTecDataset:
+        if not isinstance(source, MVTecDataset):
             raise ValueError("Dataset should be of type MVTecDataset")
         if self.samples is None:
             raise ValueError("Destination dataset is not loaded")
         if source.samples is None:
             raise ValueError("Source dataset is not loaded")
 
-        torch.manual_seed(seed)
+        if not 0 <= ratio <= 1:
+            raise ValueError("Contamination ratio must be between 0 and 1")
+
         contamination_set_size = int(math.floor(len(self.samples) * ratio))
         contaminated_entries_indices = source.samples[source.samples["label_index"] == LabelName.ABNORMAL.value].index
         if len(contaminated_entries_indices) < contamination_set_size:
@@ -162,26 +167,24 @@ class MVTecDataset(VADDataset):
                 f"while {contamination_set_size} are required."
             )
 
-        contaminated_entries_indices = np.random.choice(contaminated_entries_indices, contamination_set_size,
-                                                        replace=False)
-        for index in contaminated_entries_indices:
-            entry_metadata = source.samples.iloc[index]
-            if source.preload_imgs:
-                entry = source.data[index]
-                self.data.append(entry)
-            else:
-                entry = self.transform_image(
-                    Image.open(self.samples.iloc[index].image_path).convert("RGB")
-                )
-                self.data.append(entry)
-                source.data = [e for e in source.data if hash(e) != hash(entry)]
-
-            self.samples = pd.concat([self.samples, pd.DataFrame([entry_metadata])], ignore_index=True)
-            index_label = source.samples.index[index]
-
-        source.samples = source.samples.drop(contaminated_entries_indices).reset_index(drop=True)
-        source.data = [source.data[i] for i in range(len(source.data)) if i not in contaminated_entries_indices]
+        rng = np.random.default_rng(seed)
+        selected = rng.choice(
+            contaminated_entries_indices.to_numpy(),
+            contamination_set_size,
+            replace=False,
+        )
+        contaminated = source.samples.loc[selected]
+        self.samples = pd.concat([self.samples, contaminated], ignore_index=True)
+        source.samples = source.samples.drop(selected).reset_index(drop=True)
         return contamination_set_size
+
+    def split_dataset(self, train_size, valid_size):
+        raise NotImplementedError("MVTecDataset uses its on-disk train/test split")
+
+    def compute_contamination_ratio(self) -> float:
+        if self.samples is None or self.samples.empty:
+            return 0.0
+        return float((self.samples["label_index"] == LabelName.ABNORMAL.value).mean())
 
     def __getitem__(self, index: int):
         """
@@ -214,7 +217,7 @@ class MVTecDataset(VADDataset):
                 mask = self.transform_mask(mask)
 
             else:
-                mask = torch.zeros(1, *self.dataset_arguments.img_size)
+                mask = torch.zeros(1, *self.dataset_arguments.gt_mask_size)
 
             return image, label, mask.int(), path
 

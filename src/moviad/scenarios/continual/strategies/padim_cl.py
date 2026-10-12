@@ -21,10 +21,19 @@ from moviad.scenarios.continual.continual_model import ContinualModel
 from moviad.utilities.evaluation.metrics import Metric
 
 
-def _extract_embeddings(padim: Padim, train_dataset: VADDataset, batch_size: int, device):
+def _extract_embeddings(
+    padim: Padim,
+    train_dataset: VADDataset,
+    batch_size: int,
+    device,
+    num_workers: int = 4,
+):
     """Extract embedding vectors from training data."""
     train_dataloader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
     )
     layer_outputs = {layer: [] for layer in padim.layers_idxs}
 
@@ -96,8 +105,11 @@ class PadimCLUnimodal(ContinualModel):
                    metrics, device, logger=None, train_args=None):
         padim: Padim = self.vad_model
         batch_size = train_args.batch_size if train_args else 32
+        num_workers = train_args.num_workers if train_args else 4
 
-        embeddings = _extract_embeddings(padim, train_dataset, batch_size, device)
+        embeddings = _extract_embeddings(
+            padim, train_dataset, batch_size, device, num_workers
+        )
         n_new, s1_new, s2_new = _compute_sufficient_stats(embeddings)
 
         # Incremental update
@@ -137,8 +149,11 @@ class PadimCLMultimodal(ContinualModel):
                    metrics, device, logger=None, train_args=None):
         padim: Padim = self.vad_model
         batch_size = train_args.batch_size if train_args else 32
+        num_workers = train_args.num_workers if train_args else 4
 
-        embeddings = _extract_embeddings(padim, train_dataset, batch_size, device)
+        embeddings = _extract_embeddings(
+            padim, train_dataset, batch_size, device, num_workers
+        )
         n, s1, s2 = _compute_sufficient_stats(embeddings)
         mean, cov = _stats_to_gaussian(n, s1, s2)
 
@@ -303,8 +318,11 @@ class PadimLiteCLUnimodal(ContinualModel):
                    metrics, device, logger=None, train_args=None):
         padim: PadimLite = self.vad_model
         batch_size = train_args.batch_size if train_args else 32
+        num_workers = train_args.num_workers if train_args else 4
 
-        embeddings = _extract_embeddings(padim, train_dataset, batch_size, device)
+        embeddings = _extract_embeddings(
+            padim, train_dataset, batch_size, device, num_workers
+        )
         n_new, s1_new, s2_diag_new = _compute_diagonal_sufficient_stats(embeddings)
 
         if self.s1 is None:
@@ -337,8 +355,11 @@ class PadimLiteCLMultimodal(ContinualModel):
                    metrics, device, logger=None, train_args=None):
         padim: PadimLite = self.vad_model
         batch_size = train_args.batch_size if train_args else 32
+        num_workers = train_args.num_workers if train_args else 4
 
-        embeddings = _extract_embeddings(padim, train_dataset, batch_size, device)
+        embeddings = _extract_embeddings(
+            padim, train_dataset, batch_size, device, num_workers
+        )
         n, s1, s2_diag = _compute_diagonal_sufficient_stats(embeddings)
         mean, var = _diag_stats_to_gaussian(n, s1, s2_diag)
 

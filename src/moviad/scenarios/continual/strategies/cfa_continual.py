@@ -22,7 +22,7 @@ class CFAContinual(Replay):
             train_dataset,
             batch_size=train_args.batch_size,
             shuffle=True,
-            num_workers=4
+            num_workers=train_args.num_workers,
         )
 
         # initialize the memory bank for CFA or update it with the new task data
