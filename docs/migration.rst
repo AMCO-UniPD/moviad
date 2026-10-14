@@ -34,9 +34,16 @@ loggers, or trainers. Presence in the repository does not establish support for
 the current API. Training tests also include absolute dataset paths, network
 weight downloads, and external tracking calls.
 
-The default dependency manifest is GPU-specific. Generic Trainer automatic
-saving, constant-map normalization, contamination, backbone checkpoint paths,
-and uniform strategy signatures need separate regression coverage. Consult
+Import checks cover the current generic and continual trainers and the documented
+STFPM example. They do not certify historical entrypoints or specialized trainers.
+PhiNet is supplied by ``micromind.networks.phinet``; the old local checkpoint
+directory is not an importable backbone module. ``common.Args`` retains its field
+names but annotates dataset configuration with ``DatasetArguments`` and dataset
+type with a ``VADDataset`` class.
+
+The default dependency manifest is GPU-specific. Generic Trainer saving,
+constant-map normalization, and MVTec contamination have focused regressions.
+Legacy workflows and backbone checkpoint paths still require migration. Consult
 ``journal.md`` for the integration decisions and current validation limits.
 
 MIRAGE remains an optional, pinned Git submodule from main. Its contents are not

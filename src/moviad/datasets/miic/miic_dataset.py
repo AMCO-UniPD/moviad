@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
-from moviad.datasets.iad_dataset import IadDataset
 from moviad.utilities.configurations import Split, TaskType, LabelName
 
 """
@@ -118,7 +117,7 @@ class MiicDatasetEntry:
         self.mask = None
 
 
-class MiicDataset(IadDataset):
+class MiicDataset(Dataset):
     def __init__(self, miic_dataset_config: MiicDatasetConfig, transform=None):
         super().__init__()
         self.config = miic_dataset_config
@@ -254,7 +253,7 @@ class MiicDataset(IadDataset):
                     image_entry.mask = mask.convert("L")
             self.data.append(image_entry)
 
-    def contaminate(self, source: 'IadDataset', ratio: float, seed: int = 42) -> int:
+    def contaminate(self, source: 'MiicDataset', ratio: float, seed: int = 42) -> int:
         raise NotImplementedError("Dataset contamination not yet supported on this dataset.")
 
     def compute_contamination_ratio(self):

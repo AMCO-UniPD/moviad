@@ -1,15 +1,8 @@
-# Simple import test for trainers modules
+"""Import the current generic training API; legacy trainers use removed APIs."""
 
 def test_import_trainers():
-    import moviad.trainers
-    import moviad.trainers.batched_trainer_patchcore
-    import moviad.trainers.trainer
-    import moviad.trainers.trainer_cfa
-    import moviad.trainers.trainer_fastflow
-    import moviad.trainers.trainer_ganomaly
-    import moviad.trainers.trainer_padim
-    import moviad.trainers.trainer_paste
-    import moviad.trainers.trainer_patchcore
-    import moviad.trainers.trainer_rd4ad
-    import moviad.trainers.trainer_stfpm
-    import moviad.trainers.trainer_supersimplenet
+    from moviad.trainers.trainer import Trainer
+    from moviad.trainers.chunked_trainer import ChunkedTrainer
+    from moviad.scenarios.continual.continual_trainer import ContinualTrainer
+
+    assert all(callable(trainer) for trainer in (Trainer, ChunkedTrainer, ContinualTrainer))

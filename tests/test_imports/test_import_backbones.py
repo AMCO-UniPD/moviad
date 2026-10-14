@@ -4,4 +4,5 @@ def test_import_backbones():
     import moviad.backbones
     import moviad.backbones.mcunet
     import moviad.backbones.micronet
-    import moviad.backbones.phinet
+    from micromind.networks.phinet import PhiNet
+    assert callable(PhiNet)

@@ -6,14 +6,14 @@ import os
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
-from moviad.datasets.vad_dataset import IadDataset
+from torch.utils.data import Dataset
 from moviad.datasets.exceptions.exceptions import DatasetTooSmallToContaminateException
 from moviad.datasets.realiad.realiad_data import RealIadData
 from moviad.datasets.realiad.realiad_dataset_configurations import RealIadClassEnum, RealIadAnomalyClass
 from moviad.utilities.configurations import TaskType, Split, LabelName
 
 
-class RealIadDataset(IadDataset):
+class RealIadDataset(Dataset):
     def __init__(self, class_name: str, img_root_dir: str, json_root_path: str, task: TaskType, split: Split,
                  gt_mask_size: Optional[tuple] = None,
                  transform=None,
@@ -52,7 +52,7 @@ class RealIadDataset(IadDataset):
 
         return self.data.compute_contamination_ratio()
 
-    def contaminate(self, source: 'IadDataset', ratio: float, seed: int = 42) -> int:
+    def contaminate(self, source: 'RealIadDataset', ratio: float, seed: int = 42) -> int:
         if type(source) != RealIadDataset:
             raise ValueError("Dataset should be of type RealIadDataset")
         if self.data is None or self.data.data is None:
@@ -81,7 +81,7 @@ class RealIadDataset(IadDataset):
         source.data.data = [image for image in source.data.data if image not in contaminated_image_entries]
         return contamination_set_size
 
-    def partition(self, dataset: IadDataset, ratio: float) -> ('RealIadDataset', 'RealIadDataset'):
+    def partition(self, dataset: Dataset, ratio: float) -> ('RealIadDataset', 'RealIadDataset'):
         if not isinstance(dataset, RealIadDataset):
             raise ValueError("Dataset should be of type RealIadDataset")
         split_1, split_2 = self.data.partition(ratio)
