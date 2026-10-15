@@ -4,7 +4,7 @@ disk
 wandb/*
 wandb/**/*
 wandb
-
+experiments/
 
 
 # Documentation
