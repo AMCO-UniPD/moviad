@@ -5,6 +5,8 @@ wandb/*
 wandb/**/*
 wandb
 experiments/
+/experiments
+
 
 
 # Documentation
