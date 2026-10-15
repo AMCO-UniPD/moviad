@@ -37,6 +37,7 @@ class Replay(ContinualModel):
         ) if eval_dataset is not None else None
 
         train_args.init_train(self.vad_model)
+        train_args.init_task(self.vad_model, len(train_dataloader))
         best_metrics = {metric.name: 0.0 for metric in metrics}
 
         # Calcola quanti campioni di replay inserire per batch

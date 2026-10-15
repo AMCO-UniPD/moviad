@@ -22,8 +22,11 @@ class VADModel(nn.Module):
     @abstractmethod
     def train_step(self, batch: torch.Tensor, training_args: TrainingArgs): ...
 
+    def compute_loss(self, batch: torch.Tensor, training_args: TrainingArgs) -> torch.Tensor:
+        pass
+
     @abstractmethod
-    def train_chunk(self, train_dataloader: torch.utils.data.DataLoader, training_args: TrainingArgs): 
+    def train_chunk(self, train_dataloader: torch.utils.data.DataLoader, training_args: TrainingArgs):
         pass
 
     def reset_model(self):

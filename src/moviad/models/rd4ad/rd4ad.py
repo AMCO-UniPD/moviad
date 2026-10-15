@@ -57,6 +57,10 @@ class RD4AD(VADModel):
             self.encoder, self.bn = models["trainable"]()
             self.decoder = models["non_trainable"]()
 
+            # freeze the pretrained encoder (teacher)
+            for parameter in self.encoder.parameters():
+                parameter.requires_grad = False
+
     def to(self, device: torch.device):
         self.encoder.to(device)
         self.bn.to(device)
@@ -96,7 +100,7 @@ class RD4AD(VADModel):
         avg_batch_loss /= len(train_dataloader)
         return avg_batch_loss
 
-    def train_step(self, batch: torch.Tensor, training_args: TrainingArgs):
+    def compute_loss(self, batch: torch.Tensor, training_args: TrainingArgs) -> torch.Tensor:
         batch = batch.to(self.device)
         teacher_features, _, student_features = self.forward(batch)
 
@@ -106,6 +110,11 @@ class RD4AD(VADModel):
             loss += training_args.loss_function(
                 teacher_features[i], student_features[i]
             )
+
+        return loss
+
+    def train_step(self, batch: torch.Tensor, training_args: TrainingArgs):
+        loss = self.compute_loss(batch, training_args)
 
         training_args.optimizer.zero_grad()
         loss.backward()

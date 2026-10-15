@@ -163,7 +163,7 @@ class MVTecAD2Dataset(VADDataset):
             split_values = [s.value for s in self.split]
             self.samples = samples[samples.split.isin(split_values)].reset_index(drop=True)
         else:
-            self.samples = samples[samples.split == self.split.value].reset_index(drop=True)
+            self.samples = samples[samples.split == self.split].reset_index(drop=True)
 
     def __len__(self) -> int:
         return len(self.samples)

@@ -42,3 +42,10 @@ class TrainingArgs:
 
     def init_train(self, model: torch.nn.Module):
         pass
+
+    def init_task(self, model: torch.nn.Module, iters_per_epoch: int):
+        """
+        Called at the beginning of every training run (i.e. every task in the continual scenario),
+        after init_train. Used to (re)initialize the components that depend on the training length
+        """
+        pass
