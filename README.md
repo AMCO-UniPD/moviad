@@ -3,6 +3,8 @@
 A modular research library for visual anomaly detection, with standard training,
 edge-oriented feature extraction, and continual learning over streams of tasks.
 
+See the documentation in [link](https://amco-unipd.github.io/moviad/index.html).
+
 The current library lives in `src/moviad`. This local integration preserves the
 continual branch's implementations and incorporates main's MIRAGE submodule.
 
