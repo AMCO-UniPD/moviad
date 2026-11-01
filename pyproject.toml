@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "calflops>=0.3.2",
+    "diffusers>=0.37.0,<0.38",
     "einops>=0.8.1",
     "faiss-gpu-cu11>=1.13.0",
     "fvcore>=0.1.5.post20221221",
