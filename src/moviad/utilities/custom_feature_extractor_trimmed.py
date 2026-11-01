@@ -35,6 +35,7 @@ OTHERS_BACKBONES = (
 TORCH_BACKBONES = (
     "vgg19_bn",
     "resnet18",
+    "resnet50",
     "wide_resnet50_2",
     "efficientnet_b5",
     "mobilenet_v2",
