@@ -41,6 +41,17 @@ class DinomalyTrainArgs(TrainingArgs):
         if not self.loss_function:
             self.loss_function = global_cosine_hm_percent
 
+    def init_task(self, model, iters_per_epoch: int):
+        # restart warmup + cosine schedule on the length of the current task
+        total_iters = self.epochs * iters_per_epoch
+        self.lr_scheduler = WarmCosineScheduler(
+            self.optimizer,
+            base_value=2e-3,
+            final_value=2e-4,
+            total_iters=total_iters,
+            warmup_iters=min(100, total_iters)
+        )
+
     def __to_dict__(self):
 
         return {
@@ -191,18 +202,20 @@ class Dinomaly(VADModel):
             anomaly_maps = torch.cat(a_map_list, dim=1).mean(dim=1)
             return anomaly_maps, anomaly_maps.amax(dim=(1,2))
 
-    def train_step(self, batch: torch.Tensor, training_args: DinomalyTrainArgs):
+    def compute_loss(self, batch: torch.Tensor, training_args: DinomalyTrainArgs) -> torch.Tensor:
         batch = batch.to(self.device)
         en, de = self.forward(batch)
 
         p_final = 0.9
         p = min(p_final * self.train_steps / 1000, p_final)
-        loss = training_args.loss_function(en, de, p=p, factor=0.1)
+        return training_args.loss_function(en, de, p=p, factor=0.1)
+
+    def train_step(self, batch: torch.Tensor, training_args: DinomalyTrainArgs):
+        loss = self.compute_loss(batch, training_args)
 
         training_args.optimizer.zero_grad()
-        nn.utils.clip_grad_norm_(self.trainable.parameters(), max_norm=0.1)
-
         loss.backward()
+        nn.utils.clip_grad_norm_(self.trainable.parameters(), max_norm=0.1)
         training_args.optimizer.step()
         training_args.lr_scheduler.step()
         self.train_steps += 1

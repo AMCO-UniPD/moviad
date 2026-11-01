@@ -715,10 +715,13 @@ class CompleteFastFlowModel(VADModel):
         avg_batch_loss /= len(train_dataloader)
         return avg_batch_loss
 
-    def train_step(self, batch: torch.Tensor, training_args: TrainingArgs):
+    def compute_loss(self, batch: torch.Tensor, training_args: TrainingArgs) -> torch.Tensor:
         batch = batch.to(self.device)
         hidden_variables, log_jacobians = self.forward(batch)
-        loss = training_args.loss_function(hidden_variables, log_jacobians)
+        return training_args.loss_function(hidden_variables, log_jacobians)
+
+    def train_step(self, batch: torch.Tensor, training_args: TrainingArgs):
+        loss = self.compute_loss(batch, training_args)
 
         training_args.optimizer.zero_grad()
         loss.backward()
@@ -874,4 +877,20 @@ class FastflowModel(nn.Module):
         return_val = (hidden_variables, log_jacobians)
 
         return return_val
+
+    def inverse(self, hidden_variables: List[Tensor]) -> List[Tensor]:
+        """Inverse-Pass of the normalizing flows f^-1: Z -> X.
+
+        Args:
+            hidden_variables (List[Tensor]): Hidden variables, one for each fast-flow block.
+
+        Returns:
+            List[Tensor]: Features (after the normalization layers) mapped to the given hidden variables.
+        """
+        features: List[Tensor] = []
+        for fast_flow_block, hidden_variable in zip(self.fast_flow_blocks, hidden_variables):
+            feature, _ = fast_flow_block(hidden_variable, rev=True)
+            features.append(feature)
+
+        return features
 

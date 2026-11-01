@@ -29,14 +29,14 @@ class Trainer:
             train_dataset,
             batch_size=train_args.batch_size,
             shuffle=True,
-            num_workers=4   
+            num_workers=1   
         )
         
         self.eval_dataloader = torch.utils.data.DataLoader(
             eval_dataset,
             batch_size=train_args.batch_size,
             shuffle=False,
-            num_workers=4
+            num_workers=1
         ) if eval_dataset is not None else None
 
         self.device = device
@@ -67,6 +67,7 @@ class Trainer:
     def train(self):
 
         self.train_args.init_train(self.model)
+        self.train_args.init_task(self.model, len(self.train_dataloader))
 
         if self.logger:
             self.logger.config.update(self.train_args.__to_dict__())
