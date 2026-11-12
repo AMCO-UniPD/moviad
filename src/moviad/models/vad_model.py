@@ -17,6 +17,10 @@ class VADModel(nn.Module):
             avg_batch_loss += self.train_step(batch, training_args)
 
         avg_batch_loss /= len(train_dataloader)
+
+        if training_args.scheduler is not None:
+            training_args.scheduler.step()
+
         return avg_batch_loss
 
     @abstractmethod

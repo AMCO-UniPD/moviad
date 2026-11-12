@@ -37,6 +37,7 @@ TORCH_BACKBONES = (
     "resnet18",
     "wide_resnet50_2",
     "efficientnet_b5",
+     "efficientnet_b4",
     "mobilenet_v2",
 )
 
